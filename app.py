@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import time
 
 st.set_page_config(page_title="Invernadero", layout="wide")
 st.title("🌿 Sistema Inteligente de Invernadero")
@@ -15,7 +16,7 @@ def convertir_humedad(valor):
     except:
         return 0
 
-url = "https://api.thingspeak.com/channels/3358332/feeds/last.json"
+url = f"https://api.thingspeak.com/channels/3358332/feeds/last.json?nocache={time.time()}"
 
 try:
     response = requests.get(url, timeout=5)
@@ -83,4 +84,4 @@ try:
 except:
     st.error("❌ No se pudo conectar con ThingSpeak")
 
-st.markdown("<meta http-equiv='refresh' content='5'>", unsafe_allow_html=True)
+st.markdown("<meta http-equiv='refresh' content='60'>", unsafe_allow_html=True)
