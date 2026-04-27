@@ -7,11 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="Invernadero", layout="wide")
 st.title("🌿 Sistema Inteligente de Invernadero")
 
-# Actualiza los datos cada 2 segundos sin usar while True
-st_autorefresh(interval=2000, key="refresh_datos")
-
 FIREBASE_URL = "https://invernadero-f2926-default-rtdb.firebaseio.com/invernadero.json"
-
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 
@@ -34,16 +30,12 @@ def obtener_datos():
 
 
 def analizar_con_ia(datos):
-    # Simula análisis profundo mínimo de 5 segundos
     time.sleep(5)
 
-    h1_raw = datos.get("h1", 0)
-    h2_raw = datos.get("h2", 0)
+    h1p = convertir_humedad(datos.get("h1", 0))
+    h2p = convertir_humedad(datos.get("h2", 0))
     temp = datos.get("temp", 0)
     humA = datos.get("humA", 0)
-
-    h1p = convertir_humedad(h1_raw)
-    h2p = convertir_humedad(h2_raw)
 
     prompt = f"""
     Eres un asistente experto en invernaderos automatizados.
@@ -55,30 +47,30 @@ def analizar_con_ia(datos):
     Datos actuales:
     - Temperatura ambiente: {temp} °C
     - Humedad ambiente: {humA} %
-    - Humedad del suelo piso 1 tomates: {h1p} %
-    - Humedad del suelo piso 2 lechuga: {h2p} %
+    - Humedad suelo tomates: {h1p} %
+    - Humedad suelo lechuga: {h2p} %
 
-    Rangos de referencia usados:
-    - Tomate: temperatura ideal aproximada entre 17 °C y 25 °C.
-    - Lechuga: temperatura ideal aproximada entre 15 °C y 22 °C.
-    - Humedad de suelo recomendada: entre 40 % y 70 %.
+    Rangos de referencia:
+    - Tomate: temperatura ideal aproximada 17 °C a 25 °C.
+    - Lechuga: temperatura ideal aproximada 15 °C a 22 °C.
+    - Humedad de suelo recomendada: 40 % a 70 %.
 
-    Genera un informe en español, claro y profesional, con este formato:
+    Genera un informe claro con este formato:
 
     🍅 Piso 1 - Tomates
     - Estado de temperatura:
-    - Estado de humedad del suelo:
+    - Estado de humedad:
     - Riesgo:
     - Recomendación:
 
     🥬 Piso 2 - Lechuga
     - Estado de temperatura:
-    - Estado de humedad del suelo:
+    - Estado de humedad:
     - Riesgo:
     - Recomendación:
 
     📋 Conclusión general
-    - Panorama general:
+    - Panorama:
     - Acción recomendada:
     """
 
@@ -95,6 +87,14 @@ if "analisis_ia" not in st.session_state:
 
 if "datos_analizados" not in st.session_state:
     st.session_state.datos_analizados = None
+
+if "analizando" not in st.session_state:
+    st.session_state.analizando = False
+
+
+# Solo refresca si NO está analizando
+if not st.session_state.analizando:
+    st_autorefresh(interval=2000, key="refresh_datos")
 
 
 datos = obtener_datos()
@@ -117,15 +117,6 @@ if datos:
 
     col2.metric("🍅 Piso 1 - Tomates", f"{h1p} %")
     col2.metric("🥬 Piso 2 - Lechuga", f"{h2p} %")
-
-    st.subheader("❄️🔥 Estado del ambiente")
-
-    if humA < 40:
-        st.warning("💧 Humedad ambiental baja")
-    elif humA <= 70:
-        st.success("✅ Humedad ambiental adecuada")
-    else:
-        st.warning("⚠️ Humedad ambiental alta / posible falta de ventilación")
 
     st.subheader("🌱 Estado del suelo por cultivo")
 
@@ -157,17 +148,24 @@ if datos:
     st.subheader("🤖 IA del invernadero")
 
     if st.button("Analizar invernadero con IA"):
-        datos_snapshot = datos.copy()
-        st.session_state.datos_analizados = datos_snapshot
+        st.session_state.datos_analizados = datos.copy()
+        st.session_state.analizando = True
+        st.rerun()
 
-        try:
-            with st.spinner("🤖 Analizando el panorama del invernadero durante 5 segundos..."):
-                st.session_state.analisis_ia = analizar_con_ia(datos_snapshot)
-        except Exception as e:
-            st.session_state.analisis_ia = f"⚠️ Error al analizar con IA: {e}"
+    if st.session_state.analizando:
+        with st.spinner("🤖 Analizando el panorama del invernadero durante 5 segundos..."):
+            try:
+                st.session_state.analisis_ia = analizar_con_ia(
+                    st.session_state.datos_analizados
+                )
+            except Exception as e:
+                st.session_state.analisis_ia = f"⚠️ Error al analizar con IA: {e}"
+
+        st.session_state.analizando = False
+        st.rerun()
 
     if st.session_state.datos_analizados:
-        st.caption("📌 Datos usados por la IA en el momento del análisis:")
+        st.caption("📌 Datos usados por la IA:")
         st.json(st.session_state.datos_analizados)
 
     if st.session_state.analisis_ia:
