@@ -44,7 +44,7 @@ while True:
                 st.subheader("❄️🔥 Estado del ambiente")
 
                 if humA < 40:
-                    st.error("💧 Aire Humedo")
+                    st.success("💧 Aire Humedo")
                 elif humA <= 70:
                     st.success("✅ Aire ideal")
                 else:
