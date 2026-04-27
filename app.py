@@ -23,8 +23,11 @@ def convertir_humedad(valor):
 
 def obtener_datos():
     try:
-        response = requests.get(FIREBASE_URL, timeout=3)
-        return response.json()
+        response = requests.get(FIREBASE_URL, timeout=1)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
     except:
         return None
 
@@ -105,7 +108,7 @@ if "analizando" not in st.session_state:
 
 
 if not st.session_state.analizando:
-    st_autorefresh(interval=2000, key="refresh_datos")
+    st_autorefresh(interval=1000, key="refresh_datos")
 
 
 datos = obtener_datos()
