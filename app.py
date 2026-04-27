@@ -59,9 +59,6 @@ def analizar_con_ia(datos):
     - Lechuga: temperatura ideal aproximada entre 15 °C y 22 °C.
     - Humedad de suelo recomendada: entre 40 % y 70 %.
     - Humedad de aire recomendada para invernadero: aproximadamente entre 50 % y 80 %.
-    - Si la humedad de aire está cerca de 0 %, el aire está seco.
-    - Si la humedad de aire está cerca de 50 %, la humedad es considerable o adecuada.
-    - Si la humedad de aire está cerca de 100 %, el aire está húmedo o muy húmedo.
 
     Genera un informe claro con este formato:
 
@@ -118,19 +115,20 @@ if not st.session_state.analizando:
 datos = obtener_datos()
 
 if datos:
-    h1 = datos.get("h1", 0)
-    h2 = datos.get("h2", 0)
-    temp = datos.get("temp", 0)
-    humA = datos.get("humA", 0)
+    h1 = float(datos.get("h1", 0))
+    h2 = float(datos.get("h2", 0))
+    temp = float(datos.get("temp", 0))
+    humA = float(datos.get("humA", 0))
 
     h1p = convertir_humedad(h1)
     h2p = convertir_humedad(h2)
 
-    # Estados automáticos según sensores
-    # La bomba se enciende si cualquiera de los dos suelos está seco
-    bomba_encendida = h1p > 650 and h2p > 650
+    # Según tu Arduino y relé activo en LOW:
+    # Si h1 > 650 y h2 > 650, la bomba está encendida.
+    bomba_encendida = h1 > 650 and h2 > 650
 
-    # El humidificador se enciende si la humedad del aire está baja
+    # Según tu Arduino:
+    # Si temperatura > 33, el humidificador se activa.
     humidificador_encendido = temp > 33
 
     st.subheader("📡 Datos en tiempo real")
@@ -160,22 +158,30 @@ if datos:
             st.info("💨 Humidificador apagado - Humedad ambiental adecuada")
 
     st.subheader("💨 Estado de humedad del aire")
-st.subheader("🌱 Estado del suelo por cultivo")
 
-if h1 > 650:
-    st.error("🚨 Tomates: suelo seco, se recomienda riego")
-elif h1 < 550:
-    st.success("💧 Tomates: suelo húmedo")
-else:
-    st.warning("🌤️ Tomates: humedad media, vigilar")
+    if humA <= 30:
+        st.error("🚨 Aire seco: humedad ambiental muy baja")
+    elif humA <= 70:
+        st.success("✅ Humedad ambiental considerable o adecuada")
+    else:
+        st.success("💧 Aire húmedo o muy húmedo")
 
-if h2 > 650:
-    st.error("🚨 Lechuga: suelo seco, se recomienda riego")
-elif h2 < 550:
-    st.success("💧 Lechuga: suelo húmedo")
-else:
-    st.warning("🌤️ Lechuga: humedad media, vigilar")
-    
+    st.subheader("🌱 Estado del suelo por cultivo")
+
+    if h1 > 650:
+        st.error("🚨 Tomates: suelo seco, se recomienda riego")
+    elif h1 < 550:
+        st.success("💧 Tomates: suelo húmedo")
+    else:
+        st.warning("🌤️ Tomates: humedad media, vigilar")
+
+    if h2 > 650:
+        st.error("🚨 Lechuga: suelo seco, se recomienda riego")
+    elif h2 < 550:
+        st.success("💧 Lechuga: suelo húmedo")
+    else:
+        st.warning("🌤️ Lechuga: humedad media, vigilar")
+
     st.markdown(
         f"<h1 style='text-align: center; font-size: 70px;'>🌡️ {temp} °C</h1>",
         unsafe_allow_html=True
@@ -195,7 +201,6 @@ else:
         st.rerun()
 
     if st.session_state.analizando:
-
         datos_ia = st.session_state.datos_analizados
 
         h1p_ia = convertir_humedad(datos_ia.get("h1", 0))
@@ -231,4 +236,4 @@ else:
         st.markdown(st.session_state.analisis_ia)
 
 else:
-      st.warning("⏳ Esperando datos desde Firebase...")
+    st.warning("⏳ Esperando datos desde Firebase...")
