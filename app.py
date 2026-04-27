@@ -6,8 +6,8 @@ st.set_page_config(page_title="Invernadero", layout="wide")
 st.title("🌿 Sistema Inteligente de Invernadero")
 
 def convertir_humedad(valor):
-    seco = 800
-    humedo = 300
+    seco = 830
+    humedo = 415    
     try:
         valor = int(float(valor))
         porcentaje = (seco - valor) * 100 / (seco - humedo)
@@ -45,7 +45,7 @@ while True:
 
                 st.subheader("❄️🔥 Estado del ambiente")
 
-                if humA < 40:
+                if humA < 20:
                     st.error("❌ Aire seco")
                 elif humA <= 70:
                     st.success("✅ Humedad ideal")
