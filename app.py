@@ -1,15 +1,15 @@
 from google import genai
 import streamlit as st
-
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
-import streamlit as st
 import requests
 import time
 
 st.set_page_config(page_title="Invernadero", layout="wide")
 st.title("🌿 Sistema Inteligente de Invernadero")
 
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+
 FIREBASE_URL = "https://invernadero-f2926-default-rtdb.firebaseio.com/invernadero.json"
+
 
 def convertir_humedad(valor):
     seco = 830
@@ -19,6 +19,8 @@ def convertir_humedad(valor):
         return max(0, min(100, round(porcentaje, 1)))
     except:
         return 0
+
+
 def analizar_con_ia(datos):
     prompt = f"""
     Eres un asistente experto en invernaderos automatizados.
@@ -29,7 +31,7 @@ def analizar_con_ia(datos):
     - Temperatura: {datos.get("temp")} °C
     - Humedad ambiente: {datos.get("humA")}%
 
-    Responde:
+    Responde en español, corto y claro:
     - Estado
     - Problema
     - Recomendación
@@ -42,72 +44,73 @@ def analizar_con_ia(datos):
 
     return respuesta.text
 
+
 placeholder = st.empty()
 
-while True:
-    try:
-        data = requests.get(FIREBASE_URL).json()
+try:
+    data = requests.get(FIREBASE_URL).json()
 
-        if data:
-            h1 = data["h1"]
-            h2 = data["h2"]
-            temp = data["temp"]
-            humA = data["humA"]
+    if data:
+        h1 = data["h1"]
+        h2 = data["h2"]
+        temp = data["temp"]
+        humA = data["humA"]
 
-            h1p = convertir_humedad(h1)
-            h2p = convertir_humedad(h2)
+        h1p = convertir_humedad(h1)
+        h2p = convertir_humedad(h2)
 
-            with placeholder.container():
+        with placeholder.container():
+            col1, col2 = st.columns(2)
 
-                col1, col2 = st.columns(2)
+            col1.metric("🌡️ Temperatura", f"{temp} °C")
+            col1.metric("❄️🔥 Humedad Aire", f"{humA} %")
 
-                col1.metric("🌡️ Temperatura", f"{temp} °C")
-                col1.metric("❄️🔥 Humedad Aire", f"{humA} %")
+            col2.metric("🌱 Primer Nivel", f"{h1p} %")
+            col2.metric("🌱 Segundo Nivel", f"{h2p} %")
 
-                col2.metric("🌱 Primer Nivel", f"{h1p} %")
-                col2.metric("🌱 Segundo Nivel", f"{h2p} %")
+            st.subheader("❄️🔥 Estado del ambiente")
 
-                st.subheader("❄️🔥 Estado del ambiente")
+            if humA < 40:
+                st.success("💧 Aire húmedo")
+            elif humA <= 70:
+                st.success("✅ Aire ideal")
+            else:
+                st.warning("⚠️ Falta de ventilación")
 
-                if humA < 40:
-                    st.success("💧 Aire Humedo")
-                elif humA <= 70:
-                    st.success("✅ Aire ideal")
-                else:
-                    st.warning("⚠️ Falta de Ventilacion")
+            st.subheader("🌱 Estado del suelo")
 
-                st.subheader("🌱 Estado del suelo")
+            if h1p < 30:
+                st.error("⚠️ Primer Nivel seco")
+            elif h1p < 60:
+                st.warning("🌤️ Primer Nivel medio")
+            else:
+                st.success("💧 Primer Nivel húmedo")
 
-                if h1p < 30:
-                    st.error("⚠️ Primer Nivel seco")
-                elif h1p < 60:
-                    st.warning("🌤️ Primer Nivel medio")
-                else:
-                    st.success("💧 Primer Nivel húmedo")
+            if h2p < 30:
+                st.error("⚠️ Segundo Nivel seco")
+            elif h2p < 60:
+                st.warning("🌤️ Segundo Nivel medio")
+            else:
+                st.success("💧 Segundo Nivel húmedo")
 
-                if h2p < 30:
-                    st.error("⚠️ Segundo Nivel seco")
-                elif h2p < 60:
-                    st.warning("🌤️ Segundo Nivel medio")
-                else:
-                    st.success("💧 Segundo Nivel húmedo")
-        st.subheader("🤖 IA del invernadero")
+            st.markdown(
+                f"<h1 style='text-align: center; font-size: 70px;'>🌡️ {temp} °C</h1>",
+                unsafe_allow_html=True
+            )
 
-if st.button("Analizar"):
-    resultado = analizar_con_ia(datos)
-    st.write(resultado)
+            st.markdown(
+                f"<h1 style='text-align: center; font-size: 70px;'>❄️🔥 {humA} %</h1>",
+                unsafe_allow_html=True
+            )
 
-                st.markdown(
-                    f"<h1 style='text-align: center; font-size: 70px;'>🌡️ {temp} °C</h1>",
-                    unsafe_allow_html=True
-                )
+            st.subheader("🤖 IA del invernadero")
 
-                st.markdown(
-                    f"<h1 style='text-align: center; font-size: 70px;'>❄️🔥 {humA} %</h1>",
-                    unsafe_allow_html=True
-                )
+            if st.button("Analizar"):
+                resultado = analizar_con_ia(data)
+                st.write(resultado)
 
-    except:
-        st.warning("⏳ Esperando datos...")
+except:
+    st.warning("⏳ Esperando datos...")
 
-    time.sleep(1)  # 🔥 actualización cada 1 segundo
+time.sleep(0.5)
+st.rerun()
