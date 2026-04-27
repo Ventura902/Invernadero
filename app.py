@@ -15,6 +15,7 @@ def convertir_humedad(valor):
     seco = 830
     humedo = 415
     try:
+        valor = float(valor)
         porcentaje = (seco - valor) * 100 / (seco - humedo)
         return max(0, min(100, round(porcentaje, 1)))
     except:
@@ -90,7 +91,7 @@ def analizar_con_ia(datos):
     """
 
     respuesta = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-2.5-flash-lite",
         contents=prompt
     )
 
@@ -105,6 +106,9 @@ if "datos_analizados" not in st.session_state:
 
 if "analizando" not in st.session_state:
     st.session_state.analizando = False
+
+if "ultima_firma_ia" not in st.session_state:
+    st.session_state.ultima_firma_ia = None
 
 
 if not st.session_state.analizando:
@@ -122,6 +126,13 @@ if datos:
     h1p = convertir_humedad(h1)
     h2p = convertir_humedad(h2)
 
+    # Estados automáticos según sensores
+    # La bomba se enciende si cualquiera de los dos suelos está seco
+    bomba_encendida = h1p < 30 or h2p < 30
+
+    # El humidificador se enciende si la humedad del aire está baja
+    humidificador_encendido = humA <= 30
+
     st.subheader("📡 Datos en tiempo real")
 
     col1, col2 = st.columns(2)
@@ -131,6 +142,22 @@ if datos:
 
     col2.metric("🍅 Sensor de humedad - Piso 1 Tomates", f"{h1p} %")
     col2.metric("🥬 Sensor de humedad - Piso 2 Lechuga", f"{h2p} %")
+
+    st.subheader("⚙️ Estado de procesos automáticos")
+
+    col3, col4 = st.columns(2)
+
+    with col3:
+        if bomba_encendida:
+            st.error("🚰 BOMBA ENCENDIDA - Sistema de riego en funcionamiento")
+        else:
+            st.success("🚰 Bomba apagada - Suelo con humedad suficiente")
+
+    with col4:
+        if humidificador_encendido:
+            st.warning("💨 HUMIDIFICADOR ENCENDIDO - Aumentando humedad del aire")
+        else:
+            st.success("💨 Humidificador apagado - Humedad ambiental adecuada")
 
     st.subheader("💨 Estado de humedad del aire")
 
@@ -176,13 +203,30 @@ if datos:
         st.rerun()
 
     if st.session_state.analizando:
-        with st.spinner("🤖 Analizando el panorama del invernadero durante 5 segundos..."):
-            try:
-                st.session_state.analisis_ia = analizar_con_ia(
-                    st.session_state.datos_analizados
-                )
-            except Exception as e:
-                st.session_state.analisis_ia = f"⚠️ Error al analizar con IA: {e}"
+
+        datos_ia = st.session_state.datos_analizados
+
+        h1p_ia = convertir_humedad(datos_ia.get("h1", 0))
+        h2p_ia = convertir_humedad(datos_ia.get("h2", 0))
+        temp_ia = round(float(datos_ia.get("temp", 0)), 1)
+        humA_ia = round(float(datos_ia.get("humA", 0)), 1)
+
+        firma_actual = {
+            "temp": temp_ia,
+            "humA": humA_ia,
+            "h1p": round(h1p_ia, 0),
+            "h2p": round(h2p_ia, 0),
+        }
+
+        if st.session_state.ultima_firma_ia == firma_actual:
+            st.info("📌 Los datos no han cambiado significativamente. Se reutiliza el análisis anterior.")
+        else:
+            with st.spinner("🤖 Analizando el panorama del invernadero durante 5 segundos..."):
+                try:
+                    st.session_state.analisis_ia = analizar_con_ia(datos_ia)
+                    st.session_state.ultima_firma_ia = firma_actual
+                except Exception as e:
+                    st.session_state.analisis_ia = f"⚠️ Error al analizar con IA: {e}"
 
         st.session_state.analizando = False
         st.rerun()
@@ -194,5 +238,7 @@ if datos:
     if st.session_state.analisis_ia:
         st.markdown(st.session_state.analisis_ia)
 
+else:
+    st.warning("⏳ Esperando datos desde Firebase...")
 else:
     st.warning("⏳ Esperando datos desde Firebase...")
