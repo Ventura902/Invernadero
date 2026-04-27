@@ -12,8 +12,8 @@ client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 
 def convertir_humedad(valor):
-    seco = 830
-    humedo = 415
+    seco = 800
+    humedo = 400
     try:
         valor = float(valor)
         porcentaje = (seco - valor) * 100 / (seco - humedo)
@@ -128,7 +128,7 @@ if datos:
 
     # Estados automáticos según sensores
     # La bomba se enciende si cualquiera de los dos suelos está seco
-    bomba_encendida = h1p < 30 or h2p < 30
+    bomba_encendida = h1p < 40 or h2p < 40
 
     # El humidificador se enciende si la humedad del aire está baja
     humidificador_encendido = humA <= 30
