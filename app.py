@@ -1,139 +1,203 @@
-import streamlit as st
-import requests
-import time
-from google import genai
-from streamlit_autorefresh import st_autorefresh
+import streamlit as stimport requestsimport timefrom google import genaifrom streamlit_autorefresh import st_autorefresh
 
-st.set_page_config(page_title="Invernadero", layout="wide")
-st.title("🌿 Sistema Inteligente de Invernadero")
+st.set_page_config(page_title="Invernadero", layout="wide")st.title("🌿 Sistema Inteligente de Invernadero")
 
-FIREBASE_URL = "https://invernadero-f2926-default-rtdb.firebaseio.com/invernadero.json"
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+FIREBASE_URL = "https://invernadero-f2926-default-rtdb.firebaseio.com/invernadero.json"client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
+def convertir_humedad(valor):seco = 800humedo = 400try:valor = float(valor)porcentaje = (seco - valor) * 100 / (seco - humedo)return max(0, min(100, round(porcentaje, 1)))except:return 0
 
-def convertir_humedad(valor):
-    seco = 800
-    humedo = 400
-    try:
-        valor = float(valor)
-        porcentaje = (seco - valor) * 100 / (seco - humedo)
-        return max(0, min(100, round(porcentaje, 1)))
-    except:
-        return 0
+def obtener_datos():try:response = requests.get(FIREBASE_URL, timeout=1)if response.status_code == 200:return response.json()else:return Noneexcept:return None
 
+def analizar_con_ia(datos):time.sleep(5)
 
-def obtener_datos():
-    try:
-        response = requests.get(FIREBASE_URL, timeout=1)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return None
-    except:
-        return None
+h1p = convertir_humedad(datos.get("h1", 0))
+h2p = convertir_humedad(datos.get("h2", 0))
+temp = datos.get("temp", 0)
+humA = datos.get("humA", 0)
 
+prompt = f"""
+Eres un asistente experto en invernaderos automatizados.
 
-def analizar_con_ia(datos):
-    time.sleep(5)
+El invernadero tiene dos pisos:
+- Piso 1: Tomates
+- Piso 2: Lechuga
 
-    h1p = convertir_humedad(datos.get("h1", 0))
-    h2p = convertir_humedad(datos.get("h2", 0))
-    temp = datos.get("temp", 0)
-    humA = datos.get("humA", 0)
+Datos actuales:
+- Sensor de temperatura: {temp} °C
+- Sensor de humedad de aire: {humA} %
+- Sensor de humedad piso 1 tomates: {h1p} %
+- Sensor de humedad piso 2 lechuga: {h2p} %
 
-    prompt = f"""
-    Eres un asistente experto en invernaderos automatizados.
+Rangos de referencia:
+- Tomate: temperatura ideal aproximada entre 17 °C y 25 °C.
+- Lechuga: temperatura ideal aproximada entre 15 °C y 22 °C.
+- Humedad de suelo recomendada: entre 40 % y 70 %.
+- Humedad de aire recomendada para invernadero: aproximadamente entre 50 % y 80 %.
+- Si la humedad de aire está cerca de 0 %, el aire está seco.
+- Si la humedad de aire está cerca de 50 %, la humedad es considerable o adecuada.
+- Si la humedad de aire está cerca de 100 %, el aire está húmedo o muy húmedo.
 
-    Datos actuales:
-    - Temperatura: {temp} °C
-    - Humedad aire: {humA} %
-    - Humedad suelo tomates: {h1p} %
-    - Humedad suelo lechuga: {h2p} %
+Genera un informe claro con este formato:
 
-    Genera recomendaciones claras y concisas.
-    """
+🌡️ Sensor de temperatura
+- Estado:
+- Riesgo:
+- Recomendación:
 
-    respuesta = client.models.generate_content(
-        model="gemini-2.5-flash-lite",
-        contents=prompt
-    )
+💨 Sensor de humedad de aire
+- Estado:
+- Riesgo:
+- Recomendación:
 
-    return respuesta.text
+🍅 Sensor de humedad - Piso 1 Tomates
+- Estado de humedad:
+- Riesgo:
+- Recomendación:
 
+🥬 Sensor de humedad - Piso 2 Lechuga
+- Estado de humedad:
+- Riesgo:
+- Recomendación:
 
-if "analisis_ia" not in st.session_state:
-    st.session_state.analisis_ia = ""
+📋 Conclusión general
+- Panorama:
+- Acción recomendada:
+"""
 
-if not st.session_state.get("analizando", False):
-    st_autorefresh(interval=1000, key="refresh_datos")
+respuesta = client.models.generate_content(
+    model="gemini-2.5-flash-lite",
+    contents=prompt
+)
 
+return respuesta.text
+
+if "analisis_ia" not in st.session_state:st.session_state.analisis_ia = ""
+
+if "datos_analizados" not in st.session_state:st.session_state.datos_analizados = None
+
+if "analizando" not in st.session_state:st.session_state.analizando = False
+
+if "ultima_firma_ia" not in st.session_state:st.session_state.ultima_firma_ia = None
+
+if not st.session_state.analizando:st_autorefresh(interval=1000, key="refresh_datos")
 
 datos = obtener_datos()
 
-if datos:
-    h1 = datos.get("h1", 0)
-    h2 = datos.get("h2", 0)
-    temp = datos.get("temp", 0)
-    humA = datos.get("humA", 0)
+if datos:h1 = datos.get("h1", 0)h2 = datos.get("h2", 0)temp = datos.get("temp", 0)humA = datos.get("humA", 0)
 
-    h1p = convertir_humedad(h1)
-    h2p = convertir_humedad(h2)
+h1p = convertir_humedad(h1)
+h2p = convertir_humedad(h2)
 
-    st.subheader("📡 Datos en tiempo real")
+# Estados automáticos según sensores
+# La bomba se enciende si cualquiera de los dos suelos está seco
+bomba_encendida = h1p < 40 or h2p < 40
 
-    col1, col2 = st.columns(2)
+# El humidificador se enciende si la humedad del aire está baja
+humidificador_encendido = humA <= 30
 
-    col1.metric("🌡️ Temperatura", f"{temp} °C")
-    col1.metric("💨 Humedad aire", f"{humA} %")
+st.subheader("📡 Datos en tiempo real")
 
-    col2.metric("🍅 Humedad Tomates", f"{h1p} %")
-    col2.metric("🥬 Humedad Lechuga", f"{h2p} %")
+col1, col2 = st.columns(2)
 
-    st.subheader("⚙️ Estado de procesos automáticos")
+col1.metric("🌡️ Sensor de temperatura", f"{temp} °C")
+col1.metric("💨 Sensor de humedad de aire", f"{humA} %")
 
-    # Lógica simple (como la tenías antes)
-    bomba_encendida = h1p < 40 or h2p < 40
-    humidificador_encendido = humA <= 30
+col2.metric("🍅 Sensor de humedad - Piso 1 Tomates", f"{h1p} %")
+col2.metric("🥬 Sensor de humedad - Piso 2 Lechuga", f"{h2p} %")
 
-    col3, col4 = st.columns(2)
+st.subheader("⚙️ Estado de procesos automáticos")
 
-    with col3:
-        if bomba_encendida:
-            st.success("🚰 BOMBA ENCENDIDA")
-        else:
-            st.info("🚰 Bomba apagada")
+col3, col4 = st.columns(2)
 
-    with col4:
-        if humidificador_encendido:
-            st.success("💨 HUMIDIFICADOR ENCENDIDO")
-        else:
-            st.info("💨 Humidificador apagado")
-
-    st.subheader("🌱 Estado del suelo")
-
-    if h1p < 30:
-        st.error("Tomates secos")
-    elif h1p < 60:
-        st.warning("Tomates medios")
+with col3:
+    if bomba_encendida:
+        st.success("🚰 BOMBA ENCENDIDA - Sistema de riego en funcionamiento")
     else:
-        st.success("Tomates húmedos")
+        st.info("🚰 Bomba apagada - Suelo con humedad suficiente")
 
-    if h2p < 30:
-        st.error("Lechuga seca")
-    elif h2p < 60:
-        st.warning("Lechuga media")
+with col4:
+    if humidificador_encendido:
+        st.success("💨 HUMIDIFICADOR ENCENDIDO - Aumentando humedad del aire")
     else:
-        st.success("Lechuga húmeda")
+        st.info("💨 Humidificador apagado - Humedad ambiental adecuada")
 
-    st.divider()
-    st.subheader("🤖 IA")
+st.subheader("💨 Estado de humedad del aire")
 
-    if st.button("Analizar"):
-        with st.spinner("Analizando..."):
-            st.session_state.analisis_ia = analizar_con_ia(datos)
-
-    if st.session_state.analisis_ia:
-        st.markdown(st.session_state.analisis_ia)
-
+if humA <= 30:
+    st.error("🚨 Aire seco: humedad ambiental muy baja")
+elif humA <= 70:
+    st.success("✅ Humedad ambiental considerable o adecuada")
 else:
-    st.warning("⏳ Esperando datos...")
+    st.success("💧 Aire húmedo o muy húmedo")
+
+st.subheader("🌱 Estado del suelo por cultivo")
+
+if h1p < 30:
+    st.error("🚨 Tomates: suelo seco, se recomienda riego")
+elif h1p < 60:
+    st.warning("🌤️ Tomates: humedad media, vigilar")
+else:
+    st.success("💧 Tomates: suelo húmedo")
+
+if h2p < 30:
+    st.error("🚨 Lechuga: suelo seco, se recomienda riego")
+elif h2p < 60:
+    st.warning("🌤️ Lechuga: humedad media, vigilar")
+else:
+    st.success("💧 Lechuga: suelo húmedo")
+
+st.markdown(
+    f"<h1 style='text-align: center; font-size: 70px;'>🌡️ {temp} °C</h1>",
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    f"<h1 style='text-align: center; font-size: 70px;'>💨 {humA} %</h1>",
+    unsafe_allow_html=True
+)
+
+st.divider()
+st.subheader("🤖 IA del invernadero")
+
+if st.button("Analizar invernadero con IA"):
+    st.session_state.datos_analizados = datos.copy()
+    st.session_state.analizando = True
+    st.rerun()
+
+if st.session_state.analizando:
+
+    datos_ia = st.session_state.datos_analizados
+
+    h1p_ia = convertir_humedad(datos_ia.get("h1", 0))
+    h2p_ia = convertir_humedad(datos_ia.get("h2", 0))
+    temp_ia = round(float(datos_ia.get("temp", 0)), 1)
+    humA_ia = round(float(datos_ia.get("humA", 0)), 1)
+
+    firma_actual = {
+        "temp": temp_ia,
+        "humA": humA_ia,
+        "h1p": round(h1p_ia, 0),
+        "h2p": round(h2p_ia, 0),
+    }
+
+    if st.session_state.ultima_firma_ia == firma_actual:
+        st.info("📌 Los datos no han cambiado significativamente. Se reutiliza el análisis anterior.")
+    else:
+        with st.spinner("🤖 Analizando el panorama del invernadero durante 5 segundos..."):
+            try:
+                st.session_state.analisis_ia = analizar_con_ia(datos_ia)
+                st.session_state.ultima_firma_ia = firma_actual
+            except Exception as e:
+                st.session_state.analisis_ia = f"⚠️ Error al analizar con IA: {e}"
+
+    st.session_state.analizando = False
+    st.rerun()
+
+if st.session_state.datos_analizados:
+    st.caption("📌 Datos usados por la IA:")
+    st.json(st.session_state.datos_analizados)
+
+if st.session_state.analisis_ia:
+    st.markdown(st.session_state.analisis_ia)
+else:
+    st.warning("⏳ Esperando datos desde Firebase...")
