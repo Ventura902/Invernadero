@@ -45,26 +45,38 @@ def analizar_con_ia(datos):
     - Piso 2: Lechuga
 
     Datos actuales:
-    - Temperatura ambiente: {temp} °C
-    - Humedad ambiente: {humA} %
-    - Humedad suelo tomates: {h1p} %
-    - Humedad suelo lechuga: {h2p} %
+    - Sensor de temperatura: {temp} °C
+    - Sensor de humedad de aire: {humA} %
+    - Sensor de humedad piso 1 tomates: {h1p} %
+    - Sensor de humedad piso 2 lechuga: {h2p} %
 
     Rangos de referencia:
-    - Tomate: temperatura ideal aproximada 17 °C a 25 °C.
-    - Lechuga: temperatura ideal aproximada 15 °C a 22 °C.
-    - Humedad de suelo recomendada: 40 % a 70 %.
+    - Tomate: temperatura ideal aproximada entre 17 °C y 25 °C.
+    - Lechuga: temperatura ideal aproximada entre 15 °C y 22 °C.
+    - Humedad de suelo recomendada: entre 40 % y 70 %.
+    - Humedad de aire recomendada para invernadero: aproximadamente entre 50 % y 80 %.
+    - Si la humedad de aire está cerca de 0 %, el aire está seco.
+    - Si la humedad de aire está cerca de 50 %, la humedad es considerable o adecuada.
+    - Si la humedad de aire está cerca de 100 %, el aire está húmedo o muy húmedo.
 
     Genera un informe claro con este formato:
 
-    🍅 Piso 1 - Tomates
-    - Estado de temperatura:
+    🌡️ Sensor de temperatura
+    - Estado:
+    - Riesgo:
+    - Recomendación:
+
+    💨 Sensor de humedad de aire
+    - Estado:
+    - Riesgo:
+    - Recomendación:
+
+    🍅 Sensor de humedad - Piso 1 Tomates
     - Estado de humedad:
     - Riesgo:
     - Recomendación:
 
-    🥬 Piso 2 - Lechuga
-    - Estado de temperatura:
+    🥬 Sensor de humedad - Piso 2 Lechuga
     - Estado de humedad:
     - Riesgo:
     - Recomendación:
@@ -92,7 +104,6 @@ if "analizando" not in st.session_state:
     st.session_state.analizando = False
 
 
-# Solo refresca si NO está analizando
 if not st.session_state.analizando:
     st_autorefresh(interval=2000, key="refresh_datos")
 
@@ -112,11 +123,20 @@ if datos:
 
     col1, col2 = st.columns(2)
 
-    col1.metric("🌡️ Temperatura", f"{temp} °C")
-    col1.metric("❄️🔥 Humedad Aire", f"{humA} %")
+    col1.metric("🌡️ Sensor de temperatura", f"{temp} °C")
+    col1.metric("💨 Sensor de humedad de aire", f"{humA} %")
 
-    col2.metric("🍅 Piso 1 - Tomates", f"{h1p} %")
-    col2.metric("🥬 Piso 2 - Lechuga", f"{h2p} %")
+    col2.metric("🍅 Sensor de humedad - Piso 1 Tomates", f"{h1p} %")
+    col2.metric("🥬 Sensor de humedad - Piso 2 Lechuga", f"{h2p} %")
+
+    st.subheader("💨 Estado de humedad del aire")
+
+    if humA <= 30:
+        st.error("🚨 Aire seco: humedad ambiental muy baja")
+    elif humA <= 70:
+        st.success("✅ Humedad ambiental considerable o adecuada")
+    else:
+        st.warning("💧 Aire húmedo o muy húmedo")
 
     st.subheader("🌱 Estado del suelo por cultivo")
 
@@ -140,7 +160,7 @@ if datos:
     )
 
     st.markdown(
-        f"<h1 style='text-align: center; font-size: 70px;'>❄️🔥 {humA} %</h1>",
+        f"<h1 style='text-align: center; font-size: 70px;'>💨 {humA} %</h1>",
         unsafe_allow_html=True
     )
 
