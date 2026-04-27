@@ -136,7 +136,7 @@ if datos:
     elif humA <= 70:
         st.success("✅ Humedad ambiental considerable o adecuada")
     else:
-        st.warning("💧 Aire húmedo o muy húmedo")
+        st.success("💧 Aire húmedo o muy húmedo")
 
     st.subheader("🌱 Estado del suelo por cultivo")
 
