@@ -44,11 +44,11 @@ while True:
                 st.subheader("❄️🔥 Estado del ambiente")
 
                 if humA < 40:
-                    st.error("❌ Aire seco")
+                    st.error("✅ Aire Humedo")
                 elif humA <= 70:
-                    st.success("✅ Humedad ideal")
+                    st.success("❌ Aire ideal")
                 else:
-                    st.warning("⚠️ Aire muy húmedo")
+                    st.warning("⚠️ Falta de Ventilacion")
 
                 st.subheader("🌱 Estado del suelo")
 
