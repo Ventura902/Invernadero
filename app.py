@@ -240,5 +240,3 @@ if datos:
 
 else:
     st.warning("⏳ Esperando datos desde Firebase...")
-else:
-    st.warning("⏳ Esperando datos desde Firebase...")
