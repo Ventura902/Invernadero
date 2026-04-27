@@ -2,8 +2,7 @@ import streamlit as st
 import requests
 import time
 from google import genai
-from streamlit_autorefresh 
-import st_autorefresh
+from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="Invernadero", layout="wide")
 st.title("🌿 Sistema Inteligente de Invernadero")
