@@ -1,10 +1,25 @@
-import streamlit as stimport requestsimport timefrom google import genaifrom streamlit_autorefresh import st_autorefresh
+import streamlit as st
+import requests
+import timefrom 
+google import genai
+from streamlit_autorefresh 
+import st_autorefresh
 
-st.set_page_config(page_title="Invernadero", layout="wide")st.title("🌿 Sistema Inteligente de Invernadero")
+st.set_page_config(page_title="Invernadero", layout="wide")
+st.title("🌿 Sistema Inteligente de Invernadero")
 
-FIREBASE_URL = "https://invernadero-f2926-default-rtdb.firebaseio.com/invernadero.json"client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+FIREBASE_URL = "https://invernadero-f2926-default-rtdb.firebaseio.com/invernadero.json"
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-def convertir_humedad(valor):seco = 800humedo = 400try:valor = float(valor)porcentaje = (seco - valor) * 100 / (seco - humedo)return max(0, min(100, round(porcentaje, 1)))except:return 0
+def convertir_humedad(valor):
+    seco = 800
+    humedo = 400
+    try:
+        valor = float(valor)porcentaje = (seco - valor) * 100 / (seco - humedo)
+        return max(0, min(100, round(porcentaje, 1)))
+  except:
+
+ return 0
 
 def obtener_datos():try:response = requests.get(FIREBASE_URL, timeout=1)if response.status_code == 200:return response.json()else:return Noneexcept:return None
 
