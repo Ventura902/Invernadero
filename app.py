@@ -6,8 +6,9 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="Invernadero", layout="wide")
 st.title("🌿 Sistema Inteligente de Invernadero")
 
-# refresca cada 1 segundo sin romper tanto la interfaz
-st_autorefresh(interval=1000, key="refresh_datos")
+# Refresca datos cada 2 segundos.
+# Es más estable para que el botón de IA funcione bien.
+st_autorefresh(interval=2000, key="refresh_datos")
 
 FIREBASE_URL = "https://invernadero-f2926-default-rtdb.firebaseio.com/invernadero.json"
 
@@ -24,11 +25,19 @@ def convertir_humedad(valor):
         return 0
 
 
+def obtener_datos():
+    try:
+        response = requests.get(FIREBASE_URL, timeout=3)
+        return response.json()
+    except:
+        return None
+
+
 def analizar_con_ia(datos):
     prompt = f"""
     Eres un asistente experto en invernaderos automatizados.
 
-    Datos actuales:
+    Analiza estos datos actuales:
     - Humedad suelo 1: {datos.get("h1")}%
     - Humedad suelo 2: {datos.get("h2")}%
     - Temperatura: {datos.get("temp")} °C
@@ -48,16 +57,12 @@ def analizar_con_ia(datos):
     return respuesta.text
 
 
-def obtener_datos():
-    try:
-        response = requests.get(FIREBASE_URL, timeout=3)
-        return response.json()
-    except:
-        return None
-
-
 if "analisis_ia" not in st.session_state:
     st.session_state.analisis_ia = ""
+
+if "datos_analizados" not in st.session_state:
+    st.session_state.datos_analizados = None
+
 
 datos = obtener_datos()
 
@@ -117,7 +122,18 @@ if datos:
     st.subheader("🤖 IA del invernadero")
 
     if st.button("Analizar invernadero con IA"):
-        st.session_state.analisis_ia = analizar_con_ia(datos)
+        datos_snapshot = datos.copy()
+        st.session_state.datos_analizados = datos_snapshot
+
+        try:
+            with st.spinner("Analizando datos con IA..."):
+                st.session_state.analisis_ia = analizar_con_ia(datos_snapshot)
+        except Exception as e:
+            st.session_state.analisis_ia = f"Error al analizar con IA: {e}"
+
+    if st.session_state.datos_analizados:
+        st.caption("📌 Datos usados por la IA:")
+        st.json(st.session_state.datos_analizados)
 
     if st.session_state.analisis_ia:
         st.write(st.session_state.analisis_ia)
