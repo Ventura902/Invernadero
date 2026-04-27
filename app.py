@@ -1,3 +1,7 @@
+from google import genai
+import streamlit as st
+
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 import streamlit as st
 import requests
 import time
