@@ -19,6 +19,28 @@ def convertir_humedad(valor):
         return max(0, min(100, round(porcentaje, 1)))
     except:
         return 0
+def analizar_con_ia(datos):
+    prompt = f"""
+    Eres un asistente experto en invernaderos automatizados.
+
+    Datos actuales:
+    - Humedad suelo 1: {datos.get("h1")}%
+    - Humedad suelo 2: {datos.get("h2")}%
+    - Temperatura: {datos.get("temp")} °C
+    - Humedad ambiente: {datos.get("humA")}%
+
+    Responde:
+    - Estado
+    - Problema
+    - Recomendación
+    """
+
+    respuesta = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt
+    )
+
+    return respuesta.text
 
 placeholder = st.empty()
 
@@ -69,6 +91,11 @@ while True:
                     st.warning("🌤️ Segundo Nivel medio")
                 else:
                     st.success("💧 Segundo Nivel húmedo")
+        st.subheader("🤖 IA del invernadero")
+
+if st.button("Analizar"):
+    resultado = analizar_con_ia(datos)
+    st.write(resultado)
 
                 st.markdown(
                     f"<h1 style='text-align: center; font-size: 70px;'>🌡️ {temp} °C</h1>",
