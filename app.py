@@ -160,8 +160,9 @@ if datos:
             st.info("💨 Humidificador apagado - Humedad ambiental adecuada")
 
     st.subheader("💨 Estado de humedad del aire")
+st.subheader("🌱 Estado del suelo por cultivo")
 
-   if h1 > 650:
+if h1 > 650:
     st.error("🚨 Tomates: suelo seco, se recomienda riego")
 elif h1 < 550:
     st.success("💧 Tomates: suelo húmedo")
