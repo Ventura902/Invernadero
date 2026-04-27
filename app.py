@@ -231,4 +231,4 @@ else:
         st.markdown(st.session_state.analisis_ia)
 
 else:
-    st.warning("⏳ Esperando datos desde Firebase...")
+st.warning("⏳ Esperando datos desde Firebase...")
