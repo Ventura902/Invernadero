@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
-import timefrom 
-google import genai
+import time
+from google import genai
 from streamlit_autorefresh 
 import st_autorefresh
 
