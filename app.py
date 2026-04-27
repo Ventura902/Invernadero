@@ -1,13 +1,13 @@
 import streamlit as st
 import requests
+import time
 from google import genai
 from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="Invernadero", layout="wide")
 st.title("🌿 Sistema Inteligente de Invernadero")
 
-# Refresca datos cada 2 segundos.
-# Es más estable para que el botón de IA funcione bien.
+# Actualiza los datos cada 2 segundos sin usar while True
 st_autorefresh(interval=2000, key="refresh_datos")
 
 FIREBASE_URL = "https://invernadero-f2926-default-rtdb.firebaseio.com/invernadero.json"
@@ -34,19 +34,52 @@ def obtener_datos():
 
 
 def analizar_con_ia(datos):
+    # Simula análisis profundo mínimo de 5 segundos
+    time.sleep(5)
+
+    h1_raw = datos.get("h1", 0)
+    h2_raw = datos.get("h2", 0)
+    temp = datos.get("temp", 0)
+    humA = datos.get("humA", 0)
+
+    h1p = convertir_humedad(h1_raw)
+    h2p = convertir_humedad(h2_raw)
+
     prompt = f"""
     Eres un asistente experto en invernaderos automatizados.
 
-    Analiza estos datos actuales:
-    - Humedad suelo 1: {datos.get("h1")}%
-    - Humedad suelo 2: {datos.get("h2")}%
-    - Temperatura: {datos.get("temp")} °C
-    - Humedad ambiente: {datos.get("humA")}%
+    El invernadero tiene dos pisos:
+    - Piso 1: Tomates
+    - Piso 2: Lechuga
 
-    Responde en español, corto y claro:
-    - Estado general
-    - Problema detectado
-    - Recomendación
+    Datos actuales:
+    - Temperatura ambiente: {temp} °C
+    - Humedad ambiente: {humA} %
+    - Humedad del suelo piso 1 tomates: {h1p} %
+    - Humedad del suelo piso 2 lechuga: {h2p} %
+
+    Rangos de referencia usados:
+    - Tomate: temperatura ideal aproximada entre 17 °C y 25 °C.
+    - Lechuga: temperatura ideal aproximada entre 15 °C y 22 °C.
+    - Humedad de suelo recomendada: entre 40 % y 70 %.
+
+    Genera un informe en español, claro y profesional, con este formato:
+
+    🍅 Piso 1 - Tomates
+    - Estado de temperatura:
+    - Estado de humedad del suelo:
+    - Riesgo:
+    - Recomendación:
+
+    🥬 Piso 2 - Lechuga
+    - Estado de temperatura:
+    - Estado de humedad del suelo:
+    - Riesgo:
+    - Recomendación:
+
+    📋 Conclusión general
+    - Panorama general:
+    - Acción recomendada:
     """
 
     respuesta = client.models.generate_content(
@@ -75,38 +108,40 @@ if datos:
     h1p = convertir_humedad(h1)
     h2p = convertir_humedad(h2)
 
+    st.subheader("📡 Datos en tiempo real")
+
     col1, col2 = st.columns(2)
 
     col1.metric("🌡️ Temperatura", f"{temp} °C")
     col1.metric("❄️🔥 Humedad Aire", f"{humA} %")
 
-    col2.metric("🌱 Primer Nivel", f"{h1p} %")
-    col2.metric("🌱 Segundo Nivel", f"{h2p} %")
+    col2.metric("🍅 Piso 1 - Tomates", f"{h1p} %")
+    col2.metric("🥬 Piso 2 - Lechuga", f"{h2p} %")
 
     st.subheader("❄️🔥 Estado del ambiente")
 
     if humA < 40:
-        st.success("💧 Aire húmedo")
+        st.warning("💧 Humedad ambiental baja")
     elif humA <= 70:
-        st.success("✅ Aire ideal")
+        st.success("✅ Humedad ambiental adecuada")
     else:
-        st.warning("⚠️ Falta de ventilación")
+        st.warning("⚠️ Humedad ambiental alta / posible falta de ventilación")
 
-    st.subheader("🌱 Estado del suelo")
+    st.subheader("🌱 Estado del suelo por cultivo")
 
     if h1p < 30:
-        st.error("⚠️ Primer Nivel seco")
+        st.error("🚨 Tomates: suelo seco, se recomienda riego")
     elif h1p < 60:
-        st.warning("🌤️ Primer Nivel medio")
+        st.warning("🌤️ Tomates: humedad media, vigilar")
     else:
-        st.success("💧 Primer Nivel húmedo")
+        st.success("💧 Tomates: suelo húmedo")
 
     if h2p < 30:
-        st.error("⚠️ Segundo Nivel seco")
+        st.error("🚨 Lechuga: suelo seco, se recomienda riego")
     elif h2p < 60:
-        st.warning("🌤️ Segundo Nivel medio")
+        st.warning("🌤️ Lechuga: humedad media, vigilar")
     else:
-        st.success("💧 Segundo Nivel húmedo")
+        st.success("💧 Lechuga: suelo húmedo")
 
     st.markdown(
         f"<h1 style='text-align: center; font-size: 70px;'>🌡️ {temp} °C</h1>",
@@ -126,17 +161,17 @@ if datos:
         st.session_state.datos_analizados = datos_snapshot
 
         try:
-            with st.spinner("Analizando datos con IA..."):
+            with st.spinner("🤖 Analizando el panorama del invernadero durante 5 segundos..."):
                 st.session_state.analisis_ia = analizar_con_ia(datos_snapshot)
         except Exception as e:
-            st.session_state.analisis_ia = f"Error al analizar con IA: {e}"
+            st.session_state.analisis_ia = f"⚠️ Error al analizar con IA: {e}"
 
     if st.session_state.datos_analizados:
-        st.caption("📌 Datos usados por la IA:")
+        st.caption("📌 Datos usados por la IA en el momento del análisis:")
         st.json(st.session_state.datos_analizados)
 
     if st.session_state.analisis_ia:
-        st.write(st.session_state.analisis_ia)
+        st.markdown(st.session_state.analisis_ia)
 
 else:
     st.warning("⏳ Esperando datos desde Firebase...")
