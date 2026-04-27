@@ -161,29 +161,20 @@ if datos:
 
     st.subheader("💨 Estado de humedad del aire")
 
-    if humA <= 30:
-        st.error("🚨 Aire seco: humedad ambiental muy baja")
-    elif humA <= 70:
-        st.success("✅ Humedad ambiental considerable o adecuada")
-    else:
-        st.success("💧 Aire húmedo o muy húmedo")
+   if h1 > 650:
+    st.error("🚨 Tomates: suelo seco, se recomienda riego")
+elif h1 < 550:
+    st.success("💧 Tomates: suelo húmedo")
+else:
+    st.warning("🌤️ Tomates: humedad media, vigilar")
 
-    st.subheader("🌱 Estado del suelo por cultivo")
-
-    if h1p < 30:
-        st.error("🚨 Tomates: suelo seco, se recomienda riego")
-    elif h1p < 60:
-        st.warning("🌤️ Tomates: humedad media, vigilar")
-    else:
-        st.success("💧 Tomates: suelo húmedo")
-
-    if h2p < 30:
-        st.error("🚨 Lechuga: suelo seco, se recomienda riego")
-    elif h2p < 60:
-        st.warning("🌤️ Lechuga: humedad media, vigilar")
-    else:
-        st.success("💧 Lechuga: suelo húmedo")
-
+if h2 > 650:
+    st.error("🚨 Lechuga: suelo seco, se recomienda riego")
+elif h2 < 550:
+    st.success("💧 Lechuga: suelo húmedo")
+else:
+    st.warning("🌤️ Lechuga: humedad media, vigilar")
+    
     st.markdown(
         f"<h1 style='text-align: center; font-size: 70px;'>🌡️ {temp} °C</h1>",
         unsafe_allow_html=True
