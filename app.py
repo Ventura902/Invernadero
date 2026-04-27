@@ -128,10 +128,10 @@ if datos:
 
     # Estados automáticos según sensores
     # La bomba se enciende si cualquiera de los dos suelos está seco
-    bomba_encendida = h1p < 40 or h2p < 40
+    bomba_encendida = h1p > 650 and h2p > 650
 
     # El humidificador se enciende si la humedad del aire está baja
-    humidificador_encendido = humA <= 30
+    humidificador_encendido = temp > 33
 
     st.subheader("📡 Datos en tiempo real")
 
