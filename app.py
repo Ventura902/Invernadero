@@ -149,15 +149,15 @@ if datos:
 
     with col3:
         if bomba_encendida:
-            st.error("🚰 BOMBA ENCENDIDA - Sistema de riego en funcionamiento")
+            st.succes("🚰 BOMBA ENCENDIDA - Sistema de riego en funcionamiento")
         else:
-            st.success("🚰 Bomba apagada - Suelo con humedad suficiente")
+            st.info("🚰 Bomba apagada - Suelo con humedad suficiente")
 
     with col4:
         if humidificador_encendido:
-            st.warning("💨 HUMIDIFICADOR ENCENDIDO - Aumentando humedad del aire")
+            st.succes("💨 HUMIDIFICADOR ENCENDIDO - Aumentando humedad del aire")
         else:
-            st.success("💨 Humidificador apagado - Humedad ambiental adecuada")
+            st.info("💨 Humidificador apagado - Humedad ambiental adecuada")
 
     st.subheader("💨 Estado de humedad del aire")
 
