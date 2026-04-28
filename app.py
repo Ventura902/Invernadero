@@ -13,7 +13,7 @@ client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 def convertir_humedad(valor):
     seco = 700
-    humedo = 300
+    humedo = 500
     try:
         valor = float(valor)
         porcentaje = (seco - valor) * 100 / (seco - humedo)
