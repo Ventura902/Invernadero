@@ -12,8 +12,8 @@ client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 
 def convertir_humedad(valor):
-    seco = 830
-    humedo = 415
+    seco = 800
+    humedo = 400
     try:
         valor = float(valor)
         porcentaje = (seco - valor) * 100 / (seco - humedo)
@@ -149,15 +149,15 @@ if datos:
 
     with col3:
         if bomba_encendida:
-            st.error("🚰 BOMBA ENCENDIDA - Sistema de riego en funcionamiento")
+            st.success("🚰 BOMBA ENCENDIDA - Sistema de riego en funcionamiento")
         else:
-            st.success("🚰 Bomba apagada - Suelo con humedad suficiente")
+            st.info("🚰 Bomba apagada - Suelo con humedad suficiente")
 
     with col4:
         if humidificador_encendido:
-            st.warning("💨 HUMIDIFICADOR ENCENDIDO - Aumentando humedad del aire")
+            st.success("💨 HUMIDIFICADOR ENCENDIDO - Aumentando humedad del aire")
         else:
-            st.success("💨 Humidificador apagado - Humedad ambiental adecuada")
+            st.info("💨 Humidificador apagado - Humedad ambiental adecuada")
 
     st.subheader("💨 Estado de humedad del aire")
 
