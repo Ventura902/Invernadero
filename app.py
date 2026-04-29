@@ -169,9 +169,9 @@ if datos:
 
     with col4:
         if st.session_state.estado_humi:
-            st.success("💨 HUMIDIFICADOR / VENTILADOR ENCENDIDO")
+            st.success("❄️ HUMIDIFICADOR / VENTILADOR ENCENDIDO")
         else:
-            st.info("💨 HUMIDIFICADOR / VENTILADOR APAGADO")
+            st.info("❄️ HUMIDIFICADOR / VENTILADOR APAGADO")
 
     st.subheader("💨 Estado de humedad del aire")
 
