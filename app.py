@@ -136,9 +136,9 @@ if datos:
     h2p = convertir_humedad(h2)
 
     # Estado calculado de la bomba según la misma lógica del Arduino
-    if h1 > 800 and h2 > 800:
+    if h1 < 15 and h2 < 15:
         st.session_state.estado_bomba = True
-    elif h1 < 650 and h2 < 650:
+    elif h1 > 85 and h2 > 85:
         st.session_state.estado_bomba = False
 
     # Estado calculado del humidificador o ventilador según la misma lógica del Arduino
