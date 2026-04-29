@@ -157,7 +157,7 @@ if datos:
     col2.metric("🍅 Humedad suelo - Piso 1 Tomates", f"{h1p} %")
     col2.metric("🥬 Humedad suelo - Piso 2 Lechuga", f"{h2p} %")
 
-    st.subheader("⚙️ Estado calculado de procesos automáticos")
+    st.subheader("⚙️ Estado de procesos automáticos")
 
     col3, col4 = st.columns(2)
 
@@ -165,15 +165,13 @@ if datos:
         if st.session_state.estado_bomba:
             st.success("🚰 BOMBA ENCENDIDA - Riego activo")
         else:
-            st.info("🚰 Bomba apagada")
+            st.info("🚰 BOMBA APAGADA")
 
     with col4:
         if st.session_state.estado_humi:
             st.success("💨 HUMIDIFICADOR / VENTILADOR ENCENDIDO")
         else:
-            st.info("💨 Humidificador / ventilador apagado")
-
-    st.caption("Nota: estos estados son calculados por la página usando los mismos parámetros del Arduino.")
+            st.info("💨 HUMIDIFICADOR / VENTILADOR APAGADO")
 
     st.subheader("💨 Estado de humedad del aire")
 
