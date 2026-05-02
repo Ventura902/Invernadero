@@ -135,10 +135,10 @@ if datos:
     # Bomba y humidificador:
     # Encienden cuando ambos suelos están muy secos
     # Apagan cuando ambos suelos ya están húmedos
-    if h1p < 21 and h2p < 21:
+    if h1p < 35 and h2p < 35:
         st.session_state.estado_bomba = True
         st.session_state.estado_humi = True
-    elif h1p > 85 and h2p > 85:
+    elif h1p > 80 and h2p > 80:
         st.session_state.estado_bomba = False
         st.session_state.estado_humi = False
 
