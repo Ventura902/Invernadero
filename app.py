@@ -144,7 +144,7 @@ if datos:
 
     # Ventiladores:
     # Encienden arriba de 32°C y apagan abajo de 30°C
-    if temp > 32:
+    if temp > 31:
         st.session_state.estado_ventiladores = True
     elif temp < 30:
         st.session_state.estado_ventiladores = False
