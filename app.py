@@ -110,11 +110,11 @@ if "ultima_firma_ia" not in st.session_state:
 if "estado_bomba" not in st.session_state:
     st.session_state.estado_bomba = False
 
-if "estado_ventiladores" not in st.session_state:
-    st.session_state.estado_ventiladores = False
-
 if "estado_humi" not in st.session_state:
     st.session_state.estado_humi = False
+
+if "estado_ventiladores" not in st.session_state:
+    st.session_state.estado_ventiladores = False
 
 
 if not st.session_state.analizando:
@@ -132,20 +132,22 @@ if datos:
     h1p = convertir_humedad(h1)
     h2p = convertir_humedad(h2)
 
-    # Bomba: enciende al 15% y apaga al 85%
+    # Bomba y humidificador:
+    # Encienden cuando ambos suelos están muy secos
+    # Apagan cuando ambos suelos ya están húmedos
     if h1p < 15 and h2p < 15:
         st.session_state.estado_bomba = True
+        st.session_state.estado_humi = True
     elif h1p > 85 and h2p > 85:
         st.session_state.estado_bomba = False
+        st.session_state.estado_humi = False
 
-    # Ventiladores y humidificador:
-    # encienden arriba de 32°C y apagan abajo de 30°C
+    # Ventiladores:
+    # Encienden arriba de 32°C y apagan abajo de 30°C
     if temp > 32:
         st.session_state.estado_ventiladores = True
-        st.session_state.estado_humi = True
     elif temp < 30:
         st.session_state.estado_ventiladores = False
-        st.session_state.estado_humi = False
 
     st.subheader("📡 Datos en tiempo real")
 
@@ -165,19 +167,19 @@ if datos:
         if st.session_state.estado_bomba:
             st.success("🚰 BOMBA ENCENDIDA - Sistema de riego en funcionamiento")
         else:
-            st.info("🚰 Bomba apagada")
+            st.info("🚰 Bomba apagada - Suelo con humedad suficiente")
 
     with col4:
-        if st.session_state.estado_ventiladores:
-            st.success("🌬️ VENTILADORES ENCENDIDOS")
+        if st.session_state.estado_humi:
+            st.success("💨 HUMIDIFICADOR ENCENDIDO - Apoyo al riego por sequedad")
         else:
-            st.info("🌬️ Ventiladores apagados")
+            st.info("💨 Humidificador apagado - Suelo con humedad suficiente")
 
     with col5:
-        if st.session_state.estado_humi:
-            st.success("💨 HUMIDIFICADOR ENCENDIDO")
+        if st.session_state.estado_ventiladores:
+            st.success("🌬️ VENTILADORES ENCENDIDOS - Control de temperatura")
         else:
-            st.info("💨 Humidificador apagado")
+            st.info("🌬️ Ventiladores apagados - Temperatura estable")
 
     st.caption("📌 Estos estados son calculados por la página usando los mismos parámetros del Arduino.")
 
