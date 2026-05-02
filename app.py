@@ -156,8 +156,8 @@ if datos:
     col1.metric("🌡️ Sensor de temperatura", f"{temp} °C")
     col1.metric("💨 Sensor de humedad de aire", f"{humA} %")
 
-    col2.metric("🍅 Sensor de humedad - Piso 1 Tomates", f"{h1p} %")
-    col2.metric("🥬 Sensor de humedad - Piso 2 Lechuga", f"{h2p} %")
+    col2.metric("🍅 Sensor de humedad -  Tomates", f"{h1p} %")
+    col2.metric("🥬 Sensor de humedad -  Lechuga", f"{h2p} %")
 
     st.subheader("⚙️ Estado de procesos automáticos")
 
